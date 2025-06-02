@@ -28,6 +28,13 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".DrinkActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.Reminder" />
+        <activity
             android:name=".RestActivity"
             android:exported="true"
             android:launchMode="singleTask"

@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -18,6 +20,14 @@ import kotlinx.coroutines.delay
 class RestActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 锁屏显示
+        setShowWhenLocked(true)
+        // 点亮屏幕
+        setTurnScreenOn(true)
+        // 常亮
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // 全屏
+        window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         val restMinutes = PreferenceHelper.getRestMinutes(this)
         val totalSeconds = restMinutes * 60
         setContent {
@@ -39,6 +49,20 @@ class RestActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            window.decorView.systemUiVisibility =
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                View.SYSTEM_UI_FLAG_FULLSCREEN or
+                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+        }
+    }
+
+    override fun onBackPressed() {
+        // 禁止返回键
     }
 }
 

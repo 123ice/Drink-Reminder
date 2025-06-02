@@ -10,14 +10,22 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.example.reminder.ui.theme.ReminderTheme
-import com.example.reminder.PreferenceHelper
+import com.example.reminder.features.drink.presentation.settings.DrinkSettingsScreen
+import com.example.reminder.features.statistics.presentation.DrinkStatisticsScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -57,14 +65,14 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             ReminderTheme {
-                MainScreen(context = this)
+                MainScreen()
             }
         }
     }
 
     private fun startReminderService() {
         val intent = Intent(this, ReminderService::class.java)
-        intent.action = "com.example.reminder.ACTION_START_TIMER"
+        intent.action = "com.example.reminder.ACTION_START_DRINK_REMINDER"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(intent)
         } else {
@@ -74,60 +82,58 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen(context: android.content.Context) {
-    var workMinutes by remember { mutableStateOf(PreferenceHelper.getWorkMinutes(context)) }
-    var restMinutes by remember { mutableStateOf(PreferenceHelper.getRestMinutes(context)) }
-    var showSaved by remember { mutableStateOf(false) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("休息提醒设置", style = MaterialTheme.typography.headlineMedium)
-        Spacer(Modifier.height(24.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("工作时长(分钟): ")
-            TextField(
-                value = workMinutes.toString(),
-                onValueChange = { value ->
-                    workMinutes = value.toIntOrNull() ?: 0
-                },
-                modifier = Modifier.width(80.dp)
-            )
-        }
-        Spacer(Modifier.height(16.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("休息时长(分钟): ")
-            TextField(
-                value = restMinutes.toString(),
-                onValueChange = { value ->
-                    restMinutes = value.toIntOrNull() ?: 0
-                },
-                modifier = Modifier.width(80.dp)
-            )
-        }
-        Spacer(Modifier.height(32.dp))
-        Button(onClick = {
-            PreferenceHelper.saveTimes(context, workMinutes, restMinutes)
-            showSaved = true
-            // 发送启动计时的Intent
-            val intent = Intent(context, ReminderService::class.java)
-            intent.action = "com.example.reminder.ACTION_START_TIMER"
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
+fun MainScreen() {
+    val navController = rememberNavController()
+    
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentDestination = navBackStackEntry?.destination
+                
+                NavigationBarItem(
+                    icon = { Icon(Icons.Filled.Settings, contentDescription = "设置") },
+                    label = { Text("设置") },
+                    selected = currentDestination?.hierarchy?.any { it.route == "settings" } == true,
+                    onClick = {
+                        navController.navigate("settings") {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+                
+                NavigationBarItem(
+                    icon = { Icon(Icons.Filled.Info, contentDescription = "统计") },
+                    label = { Text("统计") },
+                    selected = currentDestination?.hierarchy?.any { it.route == "statistics" } == true,
+                    onClick = {
+                        navController.navigate("statistics") {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
             }
-        }) {
-            Text("保存设置")
         }
-        if (showSaved) {
-            Spacer(Modifier.height(16.dp))
-            Text("设置已保存！", color = MaterialTheme.colorScheme.primary)
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = "settings",
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable("settings") {
+                DrinkSettingsScreen()
+            }
+            composable("statistics") {
+                DrinkStatisticsScreen()
+            }
         }
     }
 }
