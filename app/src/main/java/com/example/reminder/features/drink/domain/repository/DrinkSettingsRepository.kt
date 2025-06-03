@@ -14,7 +14,8 @@ object DrinkSettingsRepository {
             startHour = sp.getInt("startHour", 9),
             startMinute = sp.getInt("startMinute", 0),
             endHour = sp.getInt("endHour", 18),
-            endMinute = sp.getInt("endMinute", 0)
+            endMinute = sp.getInt("endMinute", 0),
+            usePopupReminder = sp.getBoolean("usePopupReminder", true)
         )
     }
 
@@ -28,6 +29,7 @@ object DrinkSettingsRepository {
             .putInt("startMinute", settings.startMinute)
             .putInt("endHour", settings.endHour)
             .putInt("endMinute", settings.endMinute)
+            .putBoolean("usePopupReminder", settings.usePopupReminder)
             .apply()
     }
 } 

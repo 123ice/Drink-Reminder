@@ -7,5 +7,6 @@ data class DrinkReminderSettings(
     val startHour: Int = 9,
     val startMinute: Int = 0,
     val endHour: Int = 18,
-    val endMinute: Int = 0
+    val endMinute: Int = 0,
+    val usePopupReminder: Boolean = true // true=全屏弹窗, false=系统通知
 ) 
